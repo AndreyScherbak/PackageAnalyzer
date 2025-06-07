@@ -1,0 +1,12 @@
+<Settings>
+   <setting name="DataFolder" />
+   <setting name="LogFolder" />
+   <setting name="DefaultSQLTimeout" />
+   <setting name="ItemCloning.Enabled" />
+   <setting name="ItemCloning.ForceUpdate" />
+   <setting name="HtmlEditor.RemoveScripts" />
+   <setting name="HtmlEditor.LineBreak" />
+   <setting name="Publishing.DeepScanRelatedItems" />
+   <setting name="Preview.AsAnonymous" />
+   <setting name="Preview.DefaultSite" />
+</Settings>

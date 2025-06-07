@@ -1,0 +1,5 @@
+<Settings>
+    <setting name="Owin.Authentication.Enabled" />
+    <setting name="FederatedAuthentication.Enabled" />
+    <setting name="FederatedAuthentication.IdentityServer.Authority" />
+</Settings>
