@@ -3,14 +3,14 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:local="clr-namespace:PackageAnalyzer.Data" mc:Ignorable="av" x:Class="PackageAnalyzer.MainWindow" 
+        xmlns:local="clr-namespace:PackageAnalyzer.Data" mc:Ignorable="av" x:Class="PackageAnalyzer.Views.MainWindow" 
         Title="Package Analyzer" Height="800
     " Width="1000"
     WindowState="Maximized"
         WindowStartupLocation="CenterScreen"
         Closing="MainWindow_Closing"
         Icon="AppIcon.ico"
-    DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    >
     <Window.Resources>
         <!-- Define DataTemplates for different types of controls -->
         <DataTemplate x:Key="TextTemplate">
@@ -51,8 +51,8 @@
         <!-- Menu -->
         <Menu Grid.Row="0">
             <MenuItem Header="Settings">
-                <MenuItem Header="Add 'Open with Package Analyzer' option to Explorer context menu" Click="UpdateRegistry_Click" ToolTip="Adds or updates registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer."/>
-                <MenuItem Header="Remove 'Open with Package Analyzer' option from Explorer context menu" Click="ClearRegistry_Click" ToolTip="Clears registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer."/>
+                <MenuItem Header="Add 'Open with Package Analyzer' option to Explorer context menu" Command="{Binding UpdateRegistryCommand}" ToolTip="Adds or updates registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer."/>
+                <MenuItem Header="Remove 'Open with Package Analyzer' option from Explorer context menu" Command="{Binding ClearRegistryCommand}" ToolTip="Clears registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer."/>
                 <MenuItem x:Name="KeySettingsMenuItem" Header="Select categories of settings to analyze" Click="SelectSettingsCategories_Click"/>
             </MenuItem>
         </Menu>
@@ -67,9 +67,7 @@
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Margin="3">
-                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                              Checked="KeySetting_Checked" 
-                                              Unchecked="KeySetting_Unchecked" 
+                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
                                               VerticalAlignment="Center" Margin="2"/>
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="2"/>
                                 </StackPanel>
@@ -84,25 +82,23 @@
                 AllowDrop="True" Drop="FileOrFolder_Drop" Margin="10, 25">
             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
                 <TextBlock Text="Drag and Drop Files or Folders" />
-                <Button Content="Upload File" Margin="0,5,0,5" Click="UploadFiles_Click"/>
-                <Button Content="Upload Folder" Margin="0,0,0,5" Click="UploadFolders_Click"/>
+                <Button Content="Upload File" Margin="0,5,0,5" Command="{Binding UploadFilesCommand}"/>
+                <Button Content="Upload Folder" Margin="0,0,0,5" Command="{Binding UploadFoldersCommand}"/>
             </StackPanel>
         </Border>
 
         <!-- Checkbox stack panel -->
-        <StackPanel x:Name="CheckBoxPanel" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="40,20,0,0" Grid.Row="1" >
-            <CheckBox Content="Sitecore (pre-release) version" IsChecked="True"/>
-            <CheckBox Content="Sitecore roles from web.config" IsChecked="True" />
-            <CheckBox Content="Installed modules" IsChecked="True"/>
-            <CheckBox Content="Hotfixes installed" IsChecked="True" Visibility="Collapsed"/>
-            <CheckBox Content="Assembly versions" IsChecked="True"/>
-            <CheckBox Content="Key settings values" IsChecked="True"/>
-            <CheckBox Content="Topology (XM/XP)" IsChecked="True" />
-        </StackPanel>
+        <ItemsControl ItemsSource="{Binding AnalysisOptions}" Margin="40,20,0,0" Grid.Row="1">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <CheckBox Content="{Binding Name}" IsChecked="{Binding IsChecked, Mode=TwoWay}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
         <TabControl Margin="0,184,0,0" Grid.Row="1" >
             <TabItem Header="General">
                 <!-- Data report table -->
-        <ListView x:Name="SitecoreDataGrid" Grid.Row="1" Margin="10,3,20,40"
+        <ListView x:Name="SitecoreDataGrid" ItemsSource="{Binding DataToShow}" Grid.Row="1" Margin="10,3,20,40"
           SelectionMode="Single"
             VirtualizingStackPanel.IsVirtualizing="True"
           VirtualizingStackPanel.VirtualizationMode="Recycling"
@@ -137,14 +133,14 @@
             </ListView.ItemContainerStyle>
             <ListView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Refresh" Click="Refresh_Click" FontSize="14"/>
-                    <MenuItem Header="Clear" Click="Clear_Click" FontSize="14"/>
+                    <MenuItem Header="Refresh" Command="{Binding RefreshCommand}" FontSize="14"/>
+                    <MenuItem Header="Clear" Command="{Binding ClearCommand}" FontSize="14"/>
                 </ContextMenu>
             </ListView.ContextMenu>
         </ListView>
             </TabItem>
             <TabItem Header="Custom types" x:Name="CustomTypesTab">
-                <RichTextBox x:Name="CustomTypesXmlRichTextBox" 
+                <RichTextBox x:Name="CustomTypesXmlRichTextBox" Document="{Binding CustomTypes}" 
                      VerticalScrollBarVisibility="Auto"
                      HorizontalScrollBarVisibility="Auto"
                      IsReadOnly="True"
@@ -153,7 +149,7 @@
                      Margin="10,3,20,40"/>
             </TabItem>
             <TabItem Header="ConnectionStrings.config" x:Name="ConnectionStringsTab">
-                <RichTextBox x:Name="ConnectionStringsRichTextBox" 
+                <RichTextBox x:Name="ConnectionStringsRichTextBox" Document="{Binding ConnectionStrings}" 
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Auto"
                     IsReadOnly="True"
@@ -165,15 +161,15 @@
 
 
 
-        <ListBox x:Name="fileListBox" Grid.Row="1" Margin="286,37,20,0" MouseDoubleClick="FileListBox_MouseDoubleClick"  VerticalAlignment="Top" Height="95" SelectionChanged="FileListBox_SelectionChanged" />
+        <ListBox x:Name="fileListBox" ItemsSource="{Binding UploadedFileNames}" Grid.Row="1" Margin="286,37,20,0" MouseDoubleClick="FileListBox_MouseDoubleClick"  VerticalAlignment="Top" Height="95" />
 
         <Label Content="Uploaded Files or Folders" HorizontalAlignment="Left" Margin="286,11,0,0" Grid.Row="1" VerticalAlignment="Top" FontWeight="Bold" FontSize="14"/>
-        <Button Content="Refresh" Click="Refresh_Click" HorizontalAlignment="Left" Margin="40,0,0,10" Grid.Row="2" VerticalAlignment="Bottom"  Width="74"/>
-        <Button Content="Clear" Click="Clear_Click" HorizontalAlignment="Left" Margin="130,0,0,10" Grid.Row="1" VerticalAlignment="Bottom" Width="74"/>
-        <Button x:Name="OpenLogAnalyzerButton" Click="OpenLogAnalyzer_Click" IsEnabled="False" Content="Open Log Analyzer" HorizontalAlignment="Left" Margin="286,137,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="-3.601,0.325" Width="114"/>
-        <Button x:Name="OpenShowconfig" Click="OpenShowconfig_Click" IsEnabled="False" Content="Open Showcofig.xml" HorizontalAlignment="Left" Margin="419,137,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="-3.601,0.325" Width="126"/>
+        <Button Content="Refresh" Command="{Binding RefreshCommand}" HorizontalAlignment="Left" Margin="40,0,0,10" Grid.Row="2" VerticalAlignment="Bottom"  Width="74"/>
+        <Button Content="Clear" Command="{Binding ClearCommand}" HorizontalAlignment="Left" Margin="130,0,0,10" Grid.Row="1" VerticalAlignment="Bottom" Width="74"/>
+        <Button x:Name="OpenLogAnalyzerButton" Command="{Binding OpenLogAnalyzerCommand}" IsEnabled="False" Content="Open Log Analyzer" HorizontalAlignment="Left" Margin="286,137,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="-3.601,0.325" Width="114"/>
+        <Button x:Name="OpenShowconfig" Command="{Binding OpenShowconfigCommand}" IsEnabled="False" Content="Open Showcofig.xml" HorizontalAlignment="Left" Margin="419,137,0,0" Grid.Row="1" VerticalAlignment="Top" RenderTransformOrigin="-3.601,0.325" Width="126"/>
         <Label Content="Role:" HorizontalAlignment="Left" Margin="39,134,0,0" Grid.Row="1" VerticalAlignment="Top"/>
-        <ComboBox x:Name="SitecoreRoleComboBox" SelectionChanged="SitecoreRoleComboBox_SelectionChanged" HorizontalAlignment="Left" Margin="80,136,0,0" Grid.Row="1" VerticalAlignment="Top" Width="141"/>
+        <ComboBox x:Name="SitecoreRoleComboBox" ItemsSource="{Binding SitecoreRoles}" DisplayMemberPath="Value" SelectedValuePath="Key" SelectedValue="{Binding SelectedRolePath}" HorizontalAlignment="Left" Margin="80,136,0,0" Grid.Row="1" VerticalAlignment="Top" Width="141"/>
 
     </Grid>
 </Window>
