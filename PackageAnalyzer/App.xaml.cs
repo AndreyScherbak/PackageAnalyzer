@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using Serilog;
 using Serilog.Core;
+using Microsoft.Extensions.DependencyInjection;
+using PackageAnalyzer.Services;
+using PackageAnalyzer.ViewModels;
 
 namespace PackageAnalyzer
 {
@@ -16,9 +19,10 @@ namespace PackageAnalyzer
     /// </summary>
     public partial class App : Application
     {
+        private ServiceProvider? _serviceProvider;
         public App()
         {
-            
+
         }
 
         protected override void OnStartup(StartupEventArgs e)
@@ -40,8 +44,20 @@ namespace PackageAnalyzer
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
                 DispatcherUnhandledException += App_DispatcherUnhandledException;
             }
-            MainWindow mainWindow = new MainWindow(e.Args);
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+            _serviceProvider = services.BuildServiceProvider();
+
+            var viewModel = _serviceProvider.GetRequiredService<MainViewModel>();
+            MainWindow mainWindow = new MainWindow(viewModel, e.Args);
             mainWindow.Show();
+        }
+
+        private static void ConfigureServices(ServiceCollection services)
+        {
+            services.AddSingleton<TelemetryService>();
+            services.AddSingleton<MainViewModel>();
         }
 
         protected override void OnExit(ExitEventArgs e)
