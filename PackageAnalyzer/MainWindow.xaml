@@ -2,8 +2,10 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:local="clr-namespace:PackageAnalyzer.Data" mc:Ignorable="av" x:Class="PackageAnalyzer.MainWindow" 
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PackageAnalyzer.Data"
+        xmlns:helpers="clr-namespace:PackageAnalyzer.Helpers"
+        mc:Ignorable="av" x:Class="PackageAnalyzer.MainWindow"
         Title="Package Analyzer" Height="800
     " Width="1000"
     WindowState="Maximized"
@@ -144,7 +146,7 @@
         </ListView>
             </TabItem>
             <TabItem Header="Custom types" x:Name="CustomTypesTab">
-                <RichTextBox x:Name="CustomTypesXmlRichTextBox" Document="{Binding CustomTypes}" 
+                <RichTextBox x:Name="CustomTypesXmlRichTextBox" helpers:RichTextBoxHelper.Document="{Binding CustomTypes}"
                      VerticalScrollBarVisibility="Auto"
                      HorizontalScrollBarVisibility="Auto"
                      IsReadOnly="True"
@@ -153,7 +155,7 @@
                      Margin="10,3,20,40"/>
             </TabItem>
             <TabItem Header="ConnectionStrings.config" x:Name="ConnectionStringsTab">
-                <RichTextBox x:Name="ConnectionStringsRichTextBox" Document="{Binding ConnectionStrings}" 
+                <RichTextBox x:Name="ConnectionStringsRichTextBox" helpers:RichTextBoxHelper.Document="{Binding ConnectionStrings}"
                     VerticalScrollBarVisibility="Auto"
                     HorizontalScrollBarVisibility="Auto"
                     IsReadOnly="True"
