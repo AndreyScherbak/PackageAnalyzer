@@ -22,6 +22,7 @@ namespace PackageAnalyzer.ViewModels
     public class MainViewModel : ObservableObject
     {
         private readonly TelemetryService _telemetryService;
+        private readonly IDialogService _dialogService;
         private readonly PrettifyXml _prettify = new();
         private readonly List<string> uploadedFiles = new();
 
@@ -59,9 +60,10 @@ namespace PackageAnalyzer.ViewModels
         public ICommand OpenLogAnalyzerCommand { get; }
         public ICommand OpenShowconfigCommand { get; }
 
-        public MainViewModel(TelemetryService telemetryService)
+        public MainViewModel(TelemetryService telemetryService, IDialogService dialogService)
         {
             _telemetryService = telemetryService;
+            _dialogService = dialogService;
             UploadFilesCommand = new RelayCommand(_ => UploadFiles());
             UploadFoldersCommand = new RelayCommand(_ => UploadFolders());
             RefreshCommand = new RelayCommand(_ => Refresh());
@@ -82,13 +84,13 @@ namespace PackageAnalyzer.ViewModels
             if (args[0].Contains("-UpdateRegistry"))
             {
                 UpdateRegistry();
-                MessageBox.Show("Added/Updated registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogService.ShowMessage("Added/Updated registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 Application.Current.Shutdown();
             }
             else if (args[0].Contains("-ClearRegistry"))
             {
                 ClearRegistry();
-                MessageBox.Show("Cleared registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                _dialogService.ShowMessage("Cleared registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 Application.Current.Shutdown();
             }
             else
@@ -234,7 +236,7 @@ namespace PackageAnalyzer.ViewModels
             catch (Exception ex)
             {
                 Log.Error($"Error analyzing the provided package: {ex.Message}:\n{ex.StackTrace}");
-                MessageBox.Show($"Error analyzing the provided package: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowMessage($"Error analyzing the provided package: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -284,14 +286,14 @@ namespace PackageAnalyzer.ViewModels
                 string filePath = LogAnalyzerManager.GetSelectedFilePath(null, UploadedFileNames.FirstOrDefault(), uploadedFiles);
                 if (string.IsNullOrEmpty(filePath))
                 {
-                    MessageBox.Show("Logs folder not found", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _dialogService.ShowMessage("Logs folder not found", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 var logsFolder = LogAnalyzerManager.FindLogsFolder(filePath, uploadedFiles);
                 if (string.IsNullOrEmpty(logsFolder))
                 {
-                    MessageBox.Show("Logs folder not found", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    _dialogService.ShowMessage("Logs folder not found", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -306,7 +308,7 @@ namespace PackageAnalyzer.ViewModels
             catch (Exception ex)
             {
                 Log.Error(ex.Message);
-                MessageBox.Show($"Error opening Log Analyzer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowMessage($"Error opening Log Analyzer: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -334,7 +336,7 @@ namespace PackageAnalyzer.ViewModels
             }
             else
             {
-                MessageBox.Show("Invalid file path.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _dialogService.ShowMessage("Invalid file path.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 

@@ -57,6 +57,7 @@ namespace PackageAnalyzer
         private static void ConfigureServices(ServiceCollection services)
         {
             services.AddSingleton<TelemetryService>();
+            services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<MainViewModel>();
         }
 
