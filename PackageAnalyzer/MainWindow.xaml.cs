@@ -202,12 +202,13 @@ namespace PackageAnalyzer
         private void AddRowToDataGrid()
         {
             SitecoreDataGrid.ItemsSource = dataToShow;
+            SitecoreDataGrid.UpdateLayout();
 
             if (SitecoreDataGrid.View is GridView gridView)
             {
                 foreach (var column in gridView.Columns)
                 {
-                    column.Width = column.ActualWidth;
+                    column.Width = 0;
                     column.Width = double.NaN;
                 }
             }
