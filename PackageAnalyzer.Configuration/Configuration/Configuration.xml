@@ -1,0 +1,19 @@
+<PackageAnalyzerConfiguration>
+  <Settings>
+    <Setting name="TrackingEnabled" value="true"/>
+  </Settings>
+  <DefaultSettingsFiles>
+    <Item>Basic.xml</Item>
+    <Item>Caching.xml</Item>
+    <Item>Media.xml</Item>
+    <Item>MailServer.xml</Item>
+  </DefaultSettingsFiles>
+  <ExcludeAssembliesThatStartFrom>
+    <Item>sitecore.</Item>
+    <Item>spe.</Item>
+    <Item>log4net.</Item>
+    <Item>system.</Item>
+    <Item>microsoft.</Item>
+    <Item>graphql.</Item>
+  </ExcludeAssembliesThatStartFrom>
+</PackageAnalyzerConfiguration>

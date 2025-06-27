@@ -1,0 +1,5 @@
+<Settings>
+    <setting name="Xdb.Enabled" />
+    <setting name="Xdb.Tracking.Enabled" />
+    <setting name="Xdb.Tracking.Endpoint.Enabled" />
+</Settings>

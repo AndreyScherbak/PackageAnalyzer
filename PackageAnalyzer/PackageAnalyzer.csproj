@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net7.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
+		<ApplicationIcon>AppIcon.ico</ApplicationIcon>
+	</PropertyGroup>
+	<PropertyGroup>
+		<Version>1.1.0</Version>
+		<FileVersion>1.1.0</FileVersion>
+		<AssemblyVersion>1.1.0</AssemblyVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Remove="AssemblyInfo.cs"/>
+	</ItemGroup>
+	<ItemGroup>
+		<None Include="AssemblyInfo.cs"/>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
+		<PackageReference Include="PSS.Telemetry" Version="1.0.4"/>
+		<PackageReference Include="Serilog" Version="3.1.1"/>
+		<PackageReference Include="Serilog.Sinks.File" Version="5.0.0"/>
+		<PackageReference Include="Sitecore.Diagnostics.ConfigBuilder" Version="2.1.4.203"/>
+		<PackageReference Include="Sitecore.Diagnostics.ConfigBuilder.Base" Version="2.1.4.203"/>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\PackageAnalyzer.Configuration\PackageAnalyzer.Configuration.csproj"/>
+		<ProjectReference Include="..\PackageAnalyzer.Core\PackageAnalyzer.Core.csproj"/>
+	</ItemGroup>
+	<ItemGroup>
+		<Resource Include="AppIcon.ico">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Resource>
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Update="Properties\Settings.Designer.cs">
+			<DesignTimeSharedInput>True</DesignTimeSharedInput>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>Settings.settings</DependentUpon>
+		</Compile>
+	</ItemGroup>
+</Project>

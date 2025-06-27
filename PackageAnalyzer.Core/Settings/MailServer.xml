@@ -1,0 +1,6 @@
+﻿<Settings>
+  <setting name="MailServer" />
+  <setting name="MailServerUserName" />
+  <setting name="MailServerPassword" />
+  <setting name="MailServerPort" />
+</Settings>

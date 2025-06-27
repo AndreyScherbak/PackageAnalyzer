@@ -1,0 +1,8 @@
+﻿<Settings>
+  <setting name="Media.MediaLinkPrefix" />
+  <setting name="Media.AlwaysIncludeServerUrl" />
+  <setting name="Media.MediaLinkServerUrl" />
+  <setting name="Media.Resizing.MaxHeight" />
+  <setting name="Media.Resizing.MaxWidth" />
+  <setting name="Media.WhitespaceReplacement" />
+</Settings>

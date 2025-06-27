@@ -1,0 +1,5 @@
+﻿<Settings>
+  <setting name="Caching.Enabled" />
+  <setting name="Caching.DisableCacheSizeLimits" />
+  <setting name="Caching.AccessResultCacheSize" />
+</Settings>
