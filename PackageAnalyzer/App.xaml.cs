@@ -21,7 +21,7 @@ namespace PackageAnalyzer
             
         }
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             // Get the directory where the executable resides
             var exePath = System.Reflection.Assembly.GetExecutingAssembly().Location;
@@ -40,8 +40,14 @@ namespace PackageAnalyzer
                 AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
                 DispatcherUnhandledException += App_DispatcherUnhandledException;
             }
-            MainWindow mainWindow = new MainWindow(e.Args);
+            LoadingWindow loadingWindow = new LoadingWindow();
+            loadingWindow.Show();
+
+            MainWindow mainWindow = new MainWindow();
+            await mainWindow.InitializeAsync(e.Args);
+            MainWindow = mainWindow;
             mainWindow.Show();
+            loadingWindow.Close();
         }
 
         protected override void OnExit(ExitEventArgs e)

@@ -18,6 +18,7 @@ using PSS.Telemetry;
 using PackageAnalyzer.Telemetry;
 using PackageAnalyzer.Configuration;
 using System.Windows.Documents;
+using System.Threading.Tasks;
 
 namespace PackageAnalyzer
 {
@@ -32,8 +33,8 @@ namespace PackageAnalyzer
         List<string> uploadedFiles = new List<string>();
         public ObservableCollection<KeySettingItem> KeySettings { get; set; } = new ObservableCollection<KeySettingItem>();
 
-        public MainWindow(string[] args)
-        {  
+        public MainWindow()
+        {
             dataToShow = new ObservableCollection<SitecoreData>();
             ApplicationManager.GetStartedLogMainInfo();
             InitializeComponent();
@@ -41,6 +42,10 @@ namespace PackageAnalyzer
             ArchiveProvider.CleanupTempFiles();
             DataContext = this;  // Set the DataContext here
             LoadKeySettings();
+        }
+
+        public async Task InitializeAsync(string[] args)
+        {
             if (args != null && args.Length > 0)
             {
                 if (args[0].Contains("-UpdateRegistry"))
@@ -58,7 +63,7 @@ namespace PackageAnalyzer
                 else
                 {
                     uploadedFiles.AddRange(args);
-                    ProcessUploadedFilesOrFolder(args);
+                    await ProcessUploadedFilesOrFolderAsync(args);
                 }
             }
         }
@@ -84,7 +89,7 @@ namespace PackageAnalyzer
             }
         }
 
-        private void FileOrFolder_Drop(object sender, DragEventArgs e)
+        private async void FileOrFolder_Drop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop, true))
             {
@@ -92,7 +97,7 @@ namespace PackageAnalyzer
 
                 if (droppedFiles != null)
                 {
-                    ProcessUploadedFilesOrFolder(droppedFiles);
+                    await ProcessUploadedFilesOrFolderAsync(droppedFiles);
                     uploadedFiles.AddRange(droppedFiles);
                 }
 
@@ -100,86 +105,83 @@ namespace PackageAnalyzer
         }
 
         #region ProcessCheckboxes
-        private void ProcessCheckboxes(string filePath)
+        private async Task ProcessCheckboxesAsync(string filePath)
         {
             string fileOrFolderPath = filePath;
             if (dataToShow.Count() > 0)
             {
                 dataToShow.Add(new SitecoreData());
-            }      
+            }
             SitecoreData data = new SitecoreData
             {
                 Identifier = "Package",
                 Value = Path.GetFileName(filePath)
             };
             dataToShow.Add(data);
-            foreach (var child in CheckBoxPanel.Children.OfType<CheckBox>().Where(c => c.IsChecked == true))
+
+            var selected = CheckBoxPanel.Children.OfType<CheckBox>().Where(c => c.IsChecked == true).Select(c => c.Content.ToString()).ToList();
+
+            foreach (var option in selected)
             {
-                switch (child.Content.ToString())
+                switch (option)
                 {
                     case "Sitecore (pre-release) version":
-                        ProcessCheckbox("Sitecore (pre-release) version", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreVersions);
+                        await ProcessCheckboxAsync("Sitecore (pre-release) version", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreVersions);
                         break;
 
                     case "Sitecore roles from web.config":
-                        ProcessCheckbox("Sitecore roles from web.config", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreRoles);
+                        await ProcessCheckboxAsync("Sitecore roles from web.config", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreRoles);
                         break;
 
                     case "Installed modules":
-                        ProcessCheckbox("Installed modules", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreModules);
+                        await ProcessCheckboxAsync("Installed modules", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreModules);
                         break;
 
                     case "Hotfixes installed":
-                        // Process logic for "Hotfixes installed" checkbox
-                        // Add your logic here
                         break;
 
                     case "Assembly versions":
-                        ProcessCheckbox("Sitecore assembly versions list", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreAssemblyVersions);
-                        // Process logic for "Assembly versions" checkbox
-                        // Add your logic here
+                        await ProcessCheckboxAsync("Sitecore assembly versions list", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreAssemblyVersions);
                         break;
 
                     case "Key settings values":
-                        ProcessCheckbox("Sitecore settings list", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreSettings);
-                        // Add your logic here
+                        await ProcessCheckboxAsync("Sitecore settings list", fileOrFolderPath, PackageAnalyzerAdapter.GetSitecoreSettings);
                         break;
 
                     case "Topology (XM/XP)":
-                        ProcessCheckboxWithExceptionHandling("Topology (XM/XP)", fileOrFolderPath, CheckTopology);
+                        await ProcessCheckboxWithExceptionHandlingAsync("Topology (XM/XP)", fileOrFolderPath, CheckTopology);
                         break;
 
-                    // Add more cases for additional checkboxes if needed
-
                     default:
-                        // Handle any other checkboxes not covered in cases
                         break;
                 }
             }
+
             ConnectionStringsRichTextBox.Document.Blocks.Clear();
             CustomTypesXmlRichTextBox.Document.Blocks.Clear();
             var prettifyXml = new PrettifyXml();
-            CustomTypesXmlRichTextBox.Document.Blocks.Add(prettifyXml.DisplayXmlWithHighlighting(PackageAnalyzerAdapter.GetCustomTypes(fileOrFolderPath)));
-            ConnectionStringsRichTextBox.Document.Blocks.Add(prettifyXml.DisplayXmlWithHighlighting(PackageAnalyzerAdapter.GetConfigFile(fileOrFolderPath, "ConnectionStrings.config")));
-
-            //return dataToShow;
+            var customTypes = await Task.Run(() => PackageAnalyzerAdapter.GetCustomTypes(fileOrFolderPath));
+            var connectionStrings = await Task.Run(() => PackageAnalyzerAdapter.GetConfigFile(fileOrFolderPath, "ConnectionStrings.config"));
+            CustomTypesXmlRichTextBox.Document.Blocks.Add(prettifyXml.DisplayXmlWithHighlighting(customTypes));
+            ConnectionStringsRichTextBox.Document.Blocks.Add(prettifyXml.DisplayXmlWithHighlighting(connectionStrings));
         }
 
-        private void ProcessCheckbox(string identifier, string filePath, Func<string, object> valueProvider)
+        private async Task ProcessCheckboxAsync(string identifier, string filePath, Func<string, object> valueProvider)
         {
+            object value = await Task.Run(() => valueProvider(filePath));
             SitecoreData data = new SitecoreData
             {
                 Identifier = identifier,
-                Value = valueProvider(filePath)
+                Value = value
             };
             dataToShow.Add(data);
         }
 
-        private void ProcessCheckboxWithExceptionHandling(string identifier, string filePath, Func<string, string> valueProvider)
+        private async Task ProcessCheckboxWithExceptionHandlingAsync(string identifier, string filePath, Func<string, string> valueProvider)
         {
             try
             {
-                ProcessCheckbox(identifier, filePath, valueProvider);
+                await ProcessCheckboxAsync(identifier, filePath, fp => valueProvider(fp));
             }
             catch (Exception ex)
             {
@@ -187,6 +189,7 @@ namespace PackageAnalyzer
                 MessageBox.Show($"Error analyzing the provided package: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private string CheckTopology(string filePath)
         {
@@ -201,7 +204,7 @@ namespace PackageAnalyzer
             SitecoreDataGrid.ItemsSource = dataToShow;
         }
 
-        private void FileListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private async void FileListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             dataToShow.Clear();
             var selectedFile = fileListBox.SelectedItem?.ToString();
@@ -221,8 +224,8 @@ namespace PackageAnalyzer
                     } 
                     if (!IsMultipleRolesPackage(filePath))
                     {
-                        ProcessCheckboxes(filePath);
-                    }                   
+                        await ProcessCheckboxesAsync(filePath);
+                    }
                 }
             }
         }
@@ -245,19 +248,19 @@ namespace PackageAnalyzer
             fileListBox.SelectedIndex = fileListBox.Items.Count - 1;
         }
 
-        private void UploadFiles_Click(object sender, RoutedEventArgs e)
+        private async void UploadFiles_Click(object sender, RoutedEventArgs e)
         {
             VistaOpenFileDialog openFileDialog = new VistaOpenFileDialog();
             openFileDialog.Multiselect = true; // Allow multiple file selection
             if (openFileDialog.ShowDialog() == true)
             {
                 string[] filePaths = openFileDialog.FileNames;
-                ProcessUploadedFilesOrFolder(filePaths);
+                await ProcessUploadedFilesOrFolderAsync(filePaths);
                 uploadedFiles.AddRange(filePaths);
             }
         }
 
-        private void UploadFolders_Click(object sender, RoutedEventArgs e)
+        private async void UploadFolders_Click(object sender, RoutedEventArgs e)
         {
             VistaFolderBrowserDialog folderBrowserDialog = new VistaFolderBrowserDialog();
             folderBrowserDialog.Multiselect = true;
@@ -267,12 +270,12 @@ namespace PackageAnalyzer
             if (folderBrowserDialog.ShowDialog() == true)
             {
                 string[] selectedFolders =  folderBrowserDialog.SelectedPaths;
-                ProcessUploadedFilesOrFolder(selectedFolders);
+                await ProcessUploadedFilesOrFolderAsync(selectedFolders);
                 uploadedFiles.AddRange(selectedFolders);
             }
         }
 
-        private void ProcessUploadedFilesOrFolder(string[] uploadedFilesOrFolders)
+        private async Task ProcessUploadedFilesOrFolderAsync(string[] uploadedFilesOrFolders)
         {
             // Guard clause for null or empty input
             if (uploadedFilesOrFolders == null || uploadedFilesOrFolders.Length == 0)
@@ -292,16 +295,16 @@ namespace PackageAnalyzer
                 throw new InvalidOperationException("First item in the array is null.");
             }
             // Process checkboxes only if the package is not a multiple roles package
-            string filePath = PackageAnalyzerAdapter.InitialUnzipping(firstItem);
+            string filePath = await Task.Run(() => PackageAnalyzerAdapter.InitialUnzipping(firstItem));
             if (!IsMultipleRolesPackage(filePath))
             {
-                ProcessCheckboxes(filePath);
+                await ProcessCheckboxesAsync(filePath);
             }
 
             // Add a row to the data grid
             AddRowToDataGrid();
         }
-        private void Refresh_Click(object sender, RoutedEventArgs e)
+        private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
             dataToShow.Clear();
             SitecoreRoleComboBox.ItemsSource = null;
@@ -311,9 +314,9 @@ namespace PackageAnalyzer
                 string filePath = PackageAnalyzerAdapter.InitialUnzipping(matchingFile);
                 if (!IsMultipleRolesPackage(filePath))
                 {
-                    ProcessCheckboxes(filePath);
-                }         
-            }        
+                    await ProcessCheckboxesAsync(filePath);
+                }
+            }
         }
         private void Clear_Click(object sender, RoutedEventArgs e)
         {
@@ -443,13 +446,12 @@ namespace PackageAnalyzer
             }
         }
 
-        private void SitecoreRoleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private async void SitecoreRoleComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // Check if there is a selected item
             if (SitecoreRoleComboBox.SelectedItem != null)
             {
                 dataToShow.Clear();
-                ProcessCheckboxes(SitecoreRoleComboBox.SelectedValue.ToString());
+                await ProcessCheckboxesAsync(SitecoreRoleComboBox.SelectedValue.ToString());
             }
         }
 
