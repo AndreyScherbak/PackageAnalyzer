@@ -3,7 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:av="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-        xmlns:local="clr-namespace:PackageAnalyzer.Data" mc:Ignorable="av" x:Class="PackageAnalyzer.MainWindow" 
+        xmlns:local="clr-namespace:PackageAnalyzer.Data"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="av"
+        x:Class="PackageAnalyzer.MainWindow"
         Title="Package Analyzer" Height="800
     " Width="1000"
     WindowState="Maximized"
@@ -110,8 +113,8 @@
           ScrollViewer.IsDeferredScrollingEnabled="True">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Key" DisplayMemberBinding="{Binding Identifier}" />
-                    <GridViewColumn Header="Result">
+                    <GridViewColumn Header="Key" DisplayMemberBinding="{Binding Identifier}" Width="{x:Static sys:Double.NaN}" />
+                    <GridViewColumn Header="Result" Width="{x:Static sys:Double.NaN}">
                         <GridViewColumn.CellTemplateSelector>
                             <local:ValueTemplateSelector />
                         </GridViewColumn.CellTemplateSelector>
