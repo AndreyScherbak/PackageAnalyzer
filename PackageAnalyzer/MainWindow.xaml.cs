@@ -202,6 +202,16 @@ namespace PackageAnalyzer
         private void AddRowToDataGrid()
         {
             SitecoreDataGrid.ItemsSource = dataToShow;
+            SitecoreDataGrid.UpdateLayout();
+
+            if (SitecoreDataGrid.View is GridView gridView)
+            {
+                foreach (var column in gridView.Columns)
+                {
+                    column.Width = 0;
+                    column.Width = double.NaN;
+                }
+            }
         }
 
         private async void FileListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
