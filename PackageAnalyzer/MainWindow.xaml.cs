@@ -23,7 +23,17 @@ using System.Collections.Specialized;
 
 namespace PackageAnalyzer
 {
-    public class KeySettingItem
+    public interface ISelectableItem
+    {
+        string Name { get; set; }
+        bool IsChecked { get; set; }
+    }
+    public class KeySettingItem : ISelectableItem
+    {
+        public string Name { get; set; }
+        public bool IsChecked { get; set; }
+    }
+    public class ExcludedCustomTypeItem : ISelectableItem
     {
         public string Name { get; set; }
         public bool IsChecked { get; set; }
@@ -33,6 +43,8 @@ namespace PackageAnalyzer
         ObservableCollection<SitecoreData> dataToShow;
         List<string> uploadedFiles = new List<string>();
         public ObservableCollection<KeySettingItem> KeySettings { get; set; } = new ObservableCollection<KeySettingItem>();
+        public ObservableCollection<ExcludedCustomTypeItem> ExcludedCustomTypes { get; set; } = new ObservableCollection<ExcludedCustomTypeItem>();
+        private string currentConfigSection = "DefaultSettingsFiles";
 
         public MainWindow()
         {
@@ -472,27 +484,43 @@ namespace PackageAnalyzer
             }
         }
 
-        private void KeySetting_Checked(object sender, RoutedEventArgs e)
+        private void LoadExcludedCustomTypes()
         {
-            if (sender is CheckBox checkBox && checkBox.DataContext is KeySettingItem setting)
+            ExcludedCustomTypes.Clear();
+            var types = new PackageAnalyzerConfiguration().GetSection("ExcludeAssembliesThatStartFrom");
+            foreach (var type in types)
             {
-                setting.IsChecked = true; // Update the setting state
-                new PackageAnalyzerConfiguration().AddToSection("DefaultSettingsFiles", setting.Name); // Apply changes
+                ExcludedCustomTypes.Add(new ExcludedCustomTypeItem
+                {
+                    Name = type,
+                    IsChecked = true
+                });
             }
         }
 
-        private void KeySetting_Unchecked(object sender, RoutedEventArgs e)
+        private void PopupItem_Checked(object sender, RoutedEventArgs e)
         {
-            if (sender is CheckBox checkBox && checkBox.DataContext is KeySettingItem setting)
+            if (sender is CheckBox checkBox && checkBox.DataContext is ISelectableItem item)
             {
-                setting.IsChecked = false; // Update the setting state
-                new PackageAnalyzerConfiguration().RemoveFromSection("DefaultSettingsFiles", setting.Name); // Apply changes
+                item.IsChecked = true;
+                new PackageAnalyzerConfiguration().AddToSection(currentConfigSection, item.Name);
+            }
+        }
+
+        private void PopupItem_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox checkBox && checkBox.DataContext is ISelectableItem item)
+            {
+                item.IsChecked = false;
+                new PackageAnalyzerConfiguration().RemoveFromSection(currentConfigSection, item.Name);
             }
         }
 
         private void SelectSettingsCategories_Click(object sender, RoutedEventArgs e)
         {
-            // Open the popup in the center
+            SettingsListBox.ItemsSource = KeySettings;
+            currentConfigSection = "DefaultSettingsFiles";
+            AddCustomTypePanel.Visibility = Visibility.Collapsed;
             SettingsPopup.IsOpen = true;
         }
 
@@ -518,7 +546,23 @@ namespace PackageAnalyzer
 
         private void ExcludedCustomTypesMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            LoadExcludedCustomTypes();
+            SettingsListBox.ItemsSource = ExcludedCustomTypes;
+            currentConfigSection = "ExcludeAssembliesThatStartFrom";
+            AddCustomTypePanel.Visibility = Visibility.Visible;
+            SettingsPopup.IsOpen = true;
+        }
 
+        private void AddCustomType_Click(object sender, RoutedEventArgs e)
+        {
+            var newType = NewCustomTypeTextBox.Text.Trim();
+            if (!string.IsNullOrEmpty(newType))
+            {
+                var config = new PackageAnalyzerConfiguration();
+                config.AddToSection("ExcludeAssembliesThatStartFrom", newType);
+                ExcludedCustomTypes.Add(new ExcludedCustomTypeItem { Name = newType, IsChecked = true });
+                NewCustomTypeTextBox.Clear();
+            }
         }
     }
 
