@@ -16,18 +16,28 @@
     DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <Window.Resources>
         <!-- Define DataTemplates for different types of controls -->
+        <local:ValueTemplateSelector x:Key="ValueTemplateSelector" />
         <DataTemplate x:Key="TextTemplate">
-            <TextBox Text="{Binding Value}" IsReadOnly="True" BorderThickness="0" Background="Transparent">
-                <TextBox.Style>
-                    <Style TargetType="TextBox">
+            <TextBlock Text="{Binding Value}"
+             TextWrapping="NoWrap"
+             HorizontalAlignment="Left"
+             Margin="0">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Foreground" Value="Black"/>
                         <Style.Triggers>
+                            <!-- For ListView/GridView -->
+                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True">
+                                <Setter Property="Foreground" Value="White"/>
+                            </DataTrigger>
+                            <!-- Optional: if reused inside a DataGrid -->
                             <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=DataGridRow}}" Value="True">
                                 <Setter Property="Foreground" Value="White"/>
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>
-                </TextBox.Style>
-            </TextBox>
+                </TextBlock.Style>
+            </TextBlock>
         </DataTemplate>
         <DataTemplate x:Key="ExpanderTemplate">
             <Expander Background="#007ACC" Header="List of assemblies" HorizontalAlignment="Left" ExpandDirection="Down">
@@ -57,6 +67,7 @@
                 <MenuItem Header="Add 'Open with Package Analyzer' option to Explorer context menu" Click="UpdateRegistry_Click" ToolTip="Adds or updates registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer."/>
                 <MenuItem Header="Remove 'Open with Package Analyzer' option from Explorer context menu" Click="ClearRegistry_Click" ToolTip="Clears registry entries to enable context menu option to 'Open with Package Analyzer' on *.zip, *.7z, *.rar files and folder in windows explorer."/>
                 <MenuItem x:Name="KeySettingsMenuItem" Header="Select categories of settings to analyze" Click="SelectSettingsCategories_Click"/>
+                <MenuItem x:Name="ExcludedCustomTypesMenuItem" Header="Configure list of excluded types from Custom types tab" Click="ExcludedCustomTypesMenuItem_Click"/>
             </MenuItem>
         </Menu>
         <Popup x:Name="SettingsPopup" Placement="Center" StaysOpen="True">
@@ -106,20 +117,27 @@
             <TabItem Header="General">
                 <!-- Data report table -->
         <ListView x:Name="SitecoreDataGrid" Grid.Row="1" Margin="10,3,20,40"
-          SelectionMode="Single"
-            VirtualizingStackPanel.IsVirtualizing="True"
+                  SelectionMode="Single"
+          AlternationCount="2"
+          VirtualizingStackPanel.IsVirtualizing="True"
           VirtualizingStackPanel.VirtualizationMode="Recycling"
+          VirtualizingStackPanel.ScrollUnit="Pixel"
           ScrollViewer.CanContentScroll="True"
-          ScrollViewer.IsDeferredScrollingEnabled="True">
+          ScrollViewer.IsDeferredScrollingEnabled="False">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Key" DisplayMemberBinding="{Binding Identifier}" Width="{x:Static sys:Double.NaN}" />
-                    <GridViewColumn Header="Result" Width="{x:Static sys:Double.NaN}">
-                        <GridViewColumn.CellTemplateSelector>
-                            <local:ValueTemplateSelector />
-                        </GridViewColumn.CellTemplateSelector>
-                    </GridViewColumn>
-                </GridView>
+                            <GridViewColumn Header="Result" Width="{x:Static sys:Double.NaN}">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ContentPresenter
+                                            Content="{Binding}"
+                                            ContentTemplateSelector="{StaticResource ValueTemplateSelector}"
+                                            HorizontalAlignment="Left"/>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                        </GridView>
             </ListView.View>
             <ListView.ItemContainerStyle>
                 <Style TargetType="ListViewItem">
@@ -129,11 +147,11 @@
                             <Setter Property="Background" Value="#F2F2F2"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Background" Value="#FFCCE5FF"/>
+                            <Setter Property="Background" Value="#FF6699CC"/>
                         </Trigger>
                         <DataTrigger Binding="{Binding Identifier}" Value="Package">
                             <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="Background" Value="#FFCCE5FF"/>
+                            <Setter Property="Background" Value="#FF6699CC"/>
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

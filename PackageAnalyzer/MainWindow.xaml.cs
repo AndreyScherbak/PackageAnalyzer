@@ -19,6 +19,7 @@ using PackageAnalyzer.Telemetry;
 using PackageAnalyzer.Configuration;
 using System.Windows.Documents;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 
 namespace PackageAnalyzer
 {
@@ -38,6 +39,12 @@ namespace PackageAnalyzer
             dataToShow = new ObservableCollection<SitecoreData>();
             ApplicationManager.GetStartedLogMainInfo();
             InitializeComponent();
+
+            SitecoreDataGrid.Loaded += (_, __) => AutoSizeColumns(SitecoreDataGrid);
+            SitecoreDataGrid.SizeChanged += (_, __) => AutoSizeColumns(SitecoreDataGrid);
+
+            if (SitecoreDataGrid.Items is INotifyCollectionChanged incc)
+                incc.CollectionChanged += (_, __) => AutoSizeColumns(SitecoreDataGrid);
             TrackAppRun();
             ArchiveProvider.CleanupTempFiles();
             DataContext = this;  // Set the DataContext here
@@ -199,21 +206,6 @@ namespace PackageAnalyzer
 
         #endregion
 
-        private void AddRowToDataGrid()
-        {
-            SitecoreDataGrid.ItemsSource = dataToShow;
-            SitecoreDataGrid.UpdateLayout();
-
-            if (SitecoreDataGrid.View is GridView gridView)
-            {
-                foreach (var column in gridView.Columns)
-                {
-                    column.Width = 0;
-                    column.Width = double.NaN;
-                }
-            }
-        }
-
         private async void FileListBox_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             dataToShow.Clear();
@@ -310,9 +302,7 @@ namespace PackageAnalyzer
             {
                 await ProcessCheckboxesAsync(filePath);
             }
-
-            // Add a row to the data grid
-            AddRowToDataGrid();
+            AutoSizeColumns(SitecoreDataGrid);
         }
         private async void Refresh_Click(object sender, RoutedEventArgs e)
         {
@@ -511,7 +501,25 @@ namespace PackageAnalyzer
             // Close the popup
             SettingsPopup.IsOpen = false;
             Refresh_Click(sender, e);
-        } 
+        }
+        private void AutoSizeColumns(ListView listView)
+        {
+            SitecoreDataGrid.ItemsSource = dataToShow;
+            SitecoreDataGrid.UpdateLayout();
+            if (listView.View is GridView gv)
+            {
+                foreach (var col in gv.Columns)
+                {
+                    col.Width = 0;              // force re-measure
+                    col.Width = double.NaN;     // autosize to content
+                }
+            }
+        }
+
+        private void ExcludedCustomTypesMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 
 }
