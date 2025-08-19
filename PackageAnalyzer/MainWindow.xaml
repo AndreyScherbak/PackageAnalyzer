@@ -77,19 +77,25 @@
                     <Button Content="Close" HorizontalAlignment="Right" Click="ClosePopup"/>
 
                     <!-- ListBox with CheckBoxes for Each Line -->
-                    <ListBox ItemsSource="{Binding KeySettings}">
+                    <ListBox x:Name="SettingsListBox">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <StackPanel Orientation="Horizontal" Margin="3">
-                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                              Checked="KeySetting_Checked" 
-                                              Unchecked="KeySetting_Unchecked" 
+                                    <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                              Checked="PopupItem_Checked"
+                                              Unchecked="PopupItem_Unchecked"
                                               VerticalAlignment="Center" Margin="2"/>
                                     <TextBlock Text="{Binding Name}" VerticalAlignment="Center" Margin="2"/>
                                 </StackPanel>
                             </DataTemplate>
                         </ListBox.ItemTemplate>
                     </ListBox>
+
+                    <!-- Panel for adding new excluded types -->
+                    <StackPanel x:Name="AddCustomTypePanel" Orientation="Horizontal" Margin="0,5,0,0" Visibility="Collapsed">
+                        <TextBox x:Name="NewCustomTypeTextBox" Width="200"/>
+                        <Button Content="Add" Margin="5,0,0,0" Click="AddCustomType_Click"/>
+                    </StackPanel>
                 </StackPanel>
             </Border>
         </Popup>
